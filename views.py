@@ -99,7 +99,7 @@ def myAccount():
     
     conn = openConnect()
     cursor = conn.cursor()
-    select = 'SELECT user_id, name, address, phone, email, about_me from user_info join users  ON user_info.user_id = users.id WHERE username = %s'
+    select = 'SELECT user_id, name, address, phone, email, about_me, workhistory, education from user_info join users  ON user_info.user_id = users.id WHERE username = %s'
     cursor.execute(select, (session.get('username'),))
     result = cursor.fetchone()
     cursor.close()
@@ -228,6 +228,8 @@ def updateProfile():
     name = request.json.get('name')
     phone = request.json.get('phone')
     email = request.json.get('email')
+    workHistory = request.json.get('workHistory')
+    education = request.json.get('education')
     
     update = '''
     UPDATE user_info 
@@ -235,12 +237,14 @@ def updateProfile():
     about_me = %s,
     name = %s,
     phone = %s,
-    email = %s
+    email = %s,
+    workHistory = %s,
+    education = %s
     WHERE id = %s'''
     
     conn = openConnect()
     cursor = conn.cursor()
-    cursor.execute(update, (address, about_me, name, phone, email, id))
+    cursor.execute(update, (address, about_me, name, phone, email, workHistory, education, id))
     cursor.close()
     conn.commit()
     conn.close()
