@@ -59,6 +59,30 @@ def login():
         return "login"
     
     return "Username or Password is incorrect!"
+
+@views.route('/changePassword', methods=['POST'])
+def changePassword():
+    if not verifyLogin():
+        return "Access Denied"
+    
+    conn = openConnect()
+    cursor = conn.cursor()
+    username = request.json.get('username')
+    password = request.json.get('password')
+    salt = bcrypt.gensalt()
+    hpassword = bcrypt.hashpw(str(password).encode('utf-8'), salt)
+    password = hpassword.decode('utf-8')
+    update = '''
+    UPDATE users 
+    SET password = %s
+    WHERE username = %s '''
+    cursor.execute(update, (password,username))
+    
+    cursor.close()
+    conn.commit()
+    conn.close()
+    
+    return 'Password changed'
    
 @views.route('/verifyLogin', methods=["GET"])
 def home():
@@ -69,12 +93,13 @@ def home():
 
 @views.route('/myAccount', methods=["GET"])
 def myAccount():
-    if not verifyLogin() or session.get('role') != 'applicant':
+    #or session.get('role') != 'applicant'
+    if not verifyLogin():
         return "Access Denied"
     
     conn = openConnect()
     cursor = conn.cursor()
-    select = 'SELECT name, address, phone, email, about_me from user_info join users  ON user_info.user_id = users.id WHERE username = %s'
+    select = 'SELECT user_id, name, address, phone, email, about_me from user_info join users  ON user_info.user_id = users.id WHERE username = %s'
     cursor.execute(select, (session.get('username'),))
     result = cursor.fetchone()
     cursor.close()
@@ -98,9 +123,9 @@ def allJobs():
     if active == 'all':
         active = 'true or active = false'
     
-    select = f'''SELECT job_posting.id, job_title, description, salary, type,location
+    select = f'''SELECT job_posting.id, employer_id, job_title, description, salary, type,location
             FROM job_posting JOIN users
-            ON job_posting.emloyee_id = users.id
+            ON job_posting.employer_id = users.id
             JOIN employer_info
             ON employer_user_id = users.id
             WHERE active ={active if active != None else True}'''
@@ -123,10 +148,9 @@ def oneJob():
         return "Access Denied"
     #/oneJob?id=<id>
     id = request.args.get('id')
-
-    select = '''SELECT job_posting.id,job_title, description, salary, type,location
+    select = '''SELECT job_posting.id,job_title, description, salary, type, location
             FROM job_posting JOIN users
-            ON job_posting.emloyee_id = users.id
+            ON job_posting.employer_id = users.id
             JOIN employer_info
             ON employer_user_id = users.id
             WHERE job_posting.id = %s'''
@@ -144,9 +168,7 @@ def oneJob():
             response += str(row) + delimiter
     else:
         return "Job doesn't exist"
-
     return response
-
 
 @views.route('/activeJob', methods=["GET"])
 def activeJob():
@@ -155,9 +177,7 @@ def activeJob():
 
     id = request.args.get('id')
     active = request.args.get('active')
-
     update = 'UPDATE job_posting SET active = %s WHERE id = %s'
-    
     conn = openConnect()
     cursor = conn.cursor()
     cursor.execute(update, (active,id))
@@ -166,14 +186,11 @@ def activeJob():
     conn.close()
     return 'Job updated'
 
-
-
 @views.route('/updatePosting', methods=["POST"])
 def updatePosting():
     if not verifyLogin():
         return "Access Denied"
 
-    
     id = request.json.get('id')
     active = request.json.get('active')
     salary = request.json.get('salary')
@@ -208,7 +225,6 @@ def updateProfile():
     id = request.json.get('id')
     address = request.json.get('address')
     about_me = request.json.get('about_me')
-    print(address)
     name = request.json.get('name')
     phone = request.json.get('phone')
     email = request.json.get('email')
@@ -230,6 +246,245 @@ def updateProfile():
     conn.close()
     return 'Account updated'
     
+@views.route('/updateEmployer', methods=["POST"])
+def updateEmployer():
+    if not verifyLogin():
+        return "Access Denied"
+    
+    employer_user_id = request.json.get('employer_user_id')
+    location = request.json.get('location')
+    company_name = request.json.get('company_name')
+    conn = openConnect()
+    cursor = conn.cursor()
+    
+    update = '''
+    UPDATE employer_info 
+    SET company_name = %s, 
+    location = %s
+    WHERE employer_user_id = %s'''
+    
+    cursor.execute(update, (company_name, location, employer_user_id))
+    cursor.close()
+    conn.commit()
+    conn.close()
+    return "Employer Updated"
+
+
+@views.route('/insertRating', methods=["GET"])
+def insertRating():
+    if not verifyLogin():
+        return "Access Denied"
+    
+    employer_id = request.args.get('employer_id')
+    reviewer_id = request.args.get('reviewer_id')
+    rating = request.args.get('rating')
+    
+    
+    conn = openConnect()
+    cursor = conn.cursor()
+    
+    delete = 'DELETE FROM ratings WHERE employer_id = %s and reviewer_id = %s'
+    
+    insert = '''
+    INSERT INTO ratings
+    (employer_id, reviewer_id, rating)
+    VALUES (%s,%s,%s)'''
+    cursor.execute(delete, (employer_id, reviewer_id))
+    cursor.execute(insert, (employer_id, reviewer_id, rating))
+    
+    cursor.close()
+    conn.commit()
+    conn.close()
+    
+    return "Success"
+
+
+
+@views.route('/insertEmployerInfo', methods=["POST"])
+def insertEmployerInfo():
+    if not verifyLogin():
+        return "Access Denied"
+    
+    employer_user_id = request.json.get('employer_user_id')
+    location = request.json.get('location')
+    company_name = request.json.get('company_name')
+    conn = openConnect()
+    cursor = conn.cursor()
+    
+    insert = '''
+    INSERT INTO employer_info 
+    (employer_user_id, company_name, location)
+    VALUES 
+    (%s,%s,%s)
+    '''
+    
+    cursor.execute(insert, (employer_user_id, company_name, location))
+    cursor.close()
+    conn.commit()
+    conn.close()
+    return "Employer Updated"
+
+
+
+@views.route('/insertApp', methods=["POST"])
+def insertApp():
+    if not verifyLogin():
+        return "Access Denied"
+    
+    jp_id = request.json.get('jp_id')
+    applicant_id = request.json.get('applicant_id')
+    message = request.json.get('message')
+    conn = openConnect()
+    cursor = conn.cursor()
+    insert = '''
+    INSERT INTO applications 
+    (jp_id, applicant_id, message)
+    VALUES 
+    (%s,%s,%s)'''
+    cursor.execute(insert, (jp_id, applicant_id, message))
+    cursor.close()
+    conn.commit()
+    conn.close()
+    return "Valid"
+
+@views.route('/companyReviews', methods=["GET"])
+def companyReviews():
+    if not verifyLogin():
+        return "Access Denied"
+    
+    employer_id = request.args.get('employer_id')
+    conn = openConnect()
+    cursor = conn.cursor()
+
+    select = 'SELECT rating FROM ratings WHERE employer_id = %s'
+    cursor.execute(select, (employer_id,))
+    result = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    response = ""
+    if result:
+        for row in result:
+            response += delimiter.join(map(str, row)) + delimiter2
+    return response
+
+
+@views.route('/updateApp', methods=['POST'])
+def updateApp():
+    if not verifyLogin():
+        return "Access Denied"
+    
+    conn = openConnect()
+    cursor = conn.cursor()
+    
+    message = request.json.get('message')
+    status = request.json.get('status')
+    jp_id = request.json.get('jp_id')
+    applicant_id = request.json.get('applicant_id')
+    
+    update = '''
+    UPDATE applications 
+    SET message = %s, 
+    status = %s
+    WHERE jp_id = %s and applicant_id = %s'''
+    
+    cursor.execute(update, (message, status, jp_id, applicant_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return "Success"
+
+@views.route('/getUserApp', methods=['GET'])
+def getUserApp():
+    if not verifyLogin():
+        return "Access Denied"
+    conn = openConnect()
+    cursor = conn.cursor()
+    id = request.args.get('id')
+    select = 'SELECT status, message FROM applications WHERE applicant_id = %s'
+    cursor.execute(select, (id,))
+    result = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    response = ""
+    if result:
+        for row in result:
+            response += delimiter.join(map(str, row)) + delimiter2
+    return response
+    
+@views.route('/getEmployerApp', methods=['GET'])
+def getEmployerApp():
+    if not verifyLogin():
+        return "Access Denied"
+    conn = openConnect()
+    cursor = conn.cursor()
+    id = request.args.get('id')
+    select = 'SELECT status, message FROM applications WHERE jp_id = %s'
+    cursor.execute(select, (id,))
+    result = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    response = ""
+    if result:
+        for row in result:
+            response += delimiter.join(map(str, row)) + delimiter2
+    return response
+
+@views.route('/jobCategory', methods=['GET'])
+def jobCategory():
+    if not verifyLogin():
+        return "Access Denied"
+    
+    type = request.args.get('type').replace('%20'," ")
+    conn = openConnect()
+    cursor = conn.cursor()
+    select = '''
+    SELECT job_posting.id,job_title, description, salary, type, location FROM job_posting
+    JOIN users
+    ON job_posting.employer_id = users.id
+    JOIN employer_info
+    ON employer_user_id = users.id
+    WHERE type = %s'''
+    cursor.execute(select, (type,))
+
+    result = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    response = ""
+    if result:
+        for row in result:
+            response += delimiter.join(map(str, row)) + delimiter2
+    return response
+
+@views.route('/jobByEmployer', methods=['GET'])
+def jobByEmployer():
+    if not verifyLogin():
+        return "Access Denied"
+    
+    employer_id = request.args.get('employer_id')
+    conn = openConnect()
+    cursor = conn.cursor()
+    select = '''
+    SELECT job_posting.id,job_title, description, salary, type, location FROM job_posting
+    JOIN users
+    ON job_posting.employer_id = users.id
+    JOIN employer_info
+    ON employer_user_id = users.id
+    WHERE employer_id = %s'''
+    cursor.execute(select, (employer_id,))
+
+    result = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    response = ""
+    if result:
+        for row in result:
+            response += delimiter.join(map(str, row)) + delimiter2
+    return response
     
 def verifyLogin():
     return 'username' in session 
