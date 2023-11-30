@@ -515,10 +515,10 @@ def landing():
 
 
 def openConnect():
-    print(os.getenv('USER'))
+    print(os.getenv('DBUSER'))
     conn = psycopg2.connect(
     dbname=os.getenv('DBNAME'),
-    user=os.getenv('USER'),
+    user=os.getenv('DBUSER'),
     password=os.getenv('PASSWORD'),
     host=os.getenv('HOST'),
     port=os.getenv('PORT')
