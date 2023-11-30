@@ -515,6 +515,7 @@ def landing():
 
 
 def openConnect():
+    print(os.getenv('USER'))
     conn = psycopg2.connect(
     dbname=os.getenv('DBNAME'),
     user=os.getenv('USER'),
