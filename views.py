@@ -1,6 +1,11 @@
-from flask import Blueprint, request, session
+from flask import Blueprint, request,session
+import os
+from dotenv import load_dotenv
 import psycopg2
 import bcrypt
+
+load_dotenv()
+
 views = Blueprint(__name__, "views")
 delimiter = "!@#"
 delimiter2 = "$%^"
@@ -511,10 +516,10 @@ def landing():
 
 def openConnect():
     conn = psycopg2.connect(
-    dbname="jobsearch",
-    user="postgres",
-    password="1",
-    host="localhost",
-    port="5432"
+    dbname=os.getenv('DBNAME'),
+    user=os.getenv('USER'),
+    password=os.getenv('PASSWORD'),
+    host=os.getenv('HOST'),
+    port=os.getenv('PORT')
     )
     return conn  
