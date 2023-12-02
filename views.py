@@ -101,11 +101,14 @@ def myAccount():
     #or session.get('role') != 'applicant'
     if not verifyLogin():
         return "Access Denied"
+    username = session.get('username')
+    if(request.args.get('username')):
+        username = request.args.get('username')
     
     conn = openConnect()
     cursor = conn.cursor()
     select = 'SELECT user_id, name, address, phone, email, about_me, workhistory, education from user_info join users  ON user_info.user_id = users.id WHERE username = %s'
-    cursor.execute(select, (session.get('username'),))
+    cursor.execute(select, (username,))
     result = cursor.fetchone()
     cursor.close()
     conn.close()
