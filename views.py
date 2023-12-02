@@ -499,6 +499,7 @@ def jobByEmployer():
     return response
     
 def verifyLogin():
+    print(session)
     return 'username' in session 
 
 @views.route('/logout', methods=["GET"])
