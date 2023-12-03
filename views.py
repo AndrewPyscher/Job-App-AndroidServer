@@ -351,7 +351,7 @@ def insertUserInfo():
     education = request.json.get('education')
     
     insert = ''' 
-    INSERT user_info 
+    INSERT INTO user_info 
     (user_id, address, about_me, name, phone,email, workhistory,education)
     VALUES
     (%s, %s, %s, %s, %s, %s, %s, %s)
