@@ -61,7 +61,7 @@ def login():
     if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
         session['username'] = username
         session['role'] = result[1]
-        return "login"
+        return result[0]
     
     return "Username or Password is incorrect!"
 
@@ -336,6 +336,36 @@ def insertEmployerInfo():
     conn.close()
     return "Employer Updated"
 
+@views.route('/insertUserInfo', methods=["POST"])
+def insertEmployerInfo():
+    if not verifyLogin():
+        return "Access Denied"
+    
+    id = request.json.get('id')
+    address = request.json.get('address')
+    about_me = request.json.get('about_me')
+    name = request.json.get('name')
+    phone = request.json.get('phone')
+    email = request.json.get('email')
+    workHistory = request.json.get('workHistory')
+    education = request.json.get('education')
+    
+    insert = ''' 
+    INSERT user_info 
+    (user_id, address, about_me, name, phone,email, workhistory,education)
+    VALUES
+    (%s, %s, %s, %s, %s, %s, %s, %s)
+    '''
+    
+    conn = openConnect()
+    cursor = conn.cursor()
+    cursor.execute(insert, (id, address, about_me, name, phone, email, workHistory, education))
+    cursor.close()
+    conn.commit()
+    conn.close()
+    return "Created"
+
+
 
 
 @views.route('/insertApp', methods=["POST"])
@@ -381,7 +411,7 @@ def companyReviews():
     return response
 
 
-@views.route('/updateApp', methods=['POST'])
+@views.route('/updateApplication', methods=['POST'])
 def updateApp():
     if not verifyLogin():
         return "Access Denied"
