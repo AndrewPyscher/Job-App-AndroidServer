@@ -337,7 +337,7 @@ def insertEmployerInfo():
     return "Employer Updated"
 
 @views.route('/insertUserInfo', methods=["POST"])
-def insertEmployerInfo():
+def insertUserInfo():
     if not verifyLogin():
         return "Access Denied"
     
