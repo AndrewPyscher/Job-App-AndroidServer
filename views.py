@@ -543,7 +543,7 @@ def logout():
         return "No one signed in"
     
 @views.route('/createJob', methods=['POST'])
-def updateApp():
+def createJob():
     if not verifyLogin():
         return "Access Denied"
     
