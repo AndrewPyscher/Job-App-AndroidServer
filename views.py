@@ -61,7 +61,7 @@ def login():
     if bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
         session['username'] = username
         session['role'] = result[1]
-        return result[0]
+        return str(result[0])
     
     return "Username or Password is incorrect!"
 
