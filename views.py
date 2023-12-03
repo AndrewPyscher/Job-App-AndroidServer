@@ -512,6 +512,33 @@ def logout():
     else:
         return "No one signed in"
     
+@views.route('/createJob', methods=['POST'])
+def updateApp():
+    if not verifyLogin():
+        return "Access Denied"
+    
+    conn = openConnect()
+    cursor = conn.cursor()
+
+    employer_id = request.json.get('employer_id')
+    job_title = request.json.get('job_title')
+    description = request.json.get('description')
+    salary = request.json.get('salary')
+    type = request.json.get('type')
+    
+    update = '''
+    INSERT INTO job_posting
+    (employer_id, job_title, description, salary,type) 
+    VALUES
+    (%s, %s, %s, %s, %s)
+    '''
+    
+    cursor.execute(update, (employer_id, job_title, description, salary, type))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return "Success"
+    
 
 @views.route("/")
 def landing():
