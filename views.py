@@ -264,7 +264,7 @@ def updateProfile():
     cursor.close()
     conn.commit()
     conn.close()
-    return 'Account updated'
+    return f"id:{id}, address:{address}, about_me:{about_me}, name:{name}, phone:{phone}, email{email}, workhistory:{workHistory}, education{education}"
     
 @views.route('/updateEmployer', methods=["POST"])
 def updateEmployer():
