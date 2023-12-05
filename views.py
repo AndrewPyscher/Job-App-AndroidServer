@@ -33,11 +33,18 @@ def createUser():
     
     insert = 'INSERT INTO users (role, username, password) VALUES (%s, %s, %s)'
     cursor.execute(insert, (role,username,password))
+    
+    check = 'SELECT * FROM users WHERE username = %s '
+    cursor.execute(check, (username,))
+    
+    
+    result = cursor.fetchone()
+    
     conn.commit()
     cursor.close()
     conn.close()
     
-    return "Account Created"
+    return str(result[0])
         
 @views.route('/login', methods=["POST"])
 def login():
