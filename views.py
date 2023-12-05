@@ -248,7 +248,7 @@ def updateProfile():
     email = %s,
     workHistory = %s,
     education = %s
-    WHERE id = %s'''
+    WHERE user_id = %s'''
     
     conn = openConnect()
     cursor = conn.cursor()
