@@ -238,6 +238,14 @@ def updateProfile():
     email = request.json.get('email')
     workHistory = request.json.get('workHistory')
     education = request.json.get('education')
+    print(id)
+    print(address)
+    print(about_me)
+    print(name)
+    print(phone)
+    print(email)
+    print(workHistory)
+    print(education)
     
     update = '''
     UPDATE user_info 
