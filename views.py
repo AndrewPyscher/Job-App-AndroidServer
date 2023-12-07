@@ -498,7 +498,7 @@ def jobCategory():
     conn = openConnect()
     cursor = conn.cursor()
     select = '''
-    SELECT job_posting.id,job_title, description, salary, type, location FROM job_posting
+    SELECT job_posting.id, employer_id,job_title, description, salary, type, location FROM job_posting
     JOIN users
     ON job_posting.employer_id = users.id
     JOIN employer_info
