@@ -127,6 +127,44 @@ def myAccount():
     
     return response
 
+@views.route('/getCompanyName', methods=["GET"])
+def getCompanyName():
+    if not verifyLogin():
+        return "Access Denied"
+    id = session.get('id')
+
+    
+    conn = openConnect()
+    cursor = conn.cursor()
+    select = 'SELECT company_name FROM employer_info WHERE employer_user_id = %s'
+    cursor.execute(select, (id,))
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
+
+    return result[0]
+
+@views.route('/getRole', methods=["GET"])
+def getRole():
+    
+    if not verifyLogin():
+        return "Access Denied"
+    id = session.get('id')
+
+    
+    conn = openConnect()
+    cursor = conn.cursor()
+    select = 'SELECT role FROM users WHERE id = %s'
+    cursor.execute(select, (id,))
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
+
+    return result[0]
+
+
 
 @views.route('/allJobs', methods=["GET"])
 def allJobs():
