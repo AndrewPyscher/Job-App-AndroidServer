@@ -642,9 +642,9 @@ def createJob():
     
     update = '''
     INSERT INTO job_posting
-    (employer_id, job_title, description, salary,type) 
+    (employer_id, job_title, description, salary,type, active) 
     VALUES
-    (%s, %s, %s, %s, %s)
+    (%s, %s, %s, %s, %s, true)
     '''
     
     cursor.execute(update, (employer_id, job_title, description, salary, type))
