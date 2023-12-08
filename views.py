@@ -4,12 +4,16 @@ from dotenv import load_dotenv
 import psycopg2
 import bcrypt
 
+# get enviroment variables
 load_dotenv()
 
 views = Blueprint(__name__, "views")
+# delimeters for sending info back
 delimiter = "!@#"
 delimiter2 = "$%^"
 
+# route for creating a new user, send role, username and password
+# returns id
 @views.route("/createUser", methods=["POST"])
 def createUser():
     conn = openConnect()
@@ -46,6 +50,9 @@ def createUser():
     
     return str(result[0])
         
+# route to login
+# send username and password
+# returns id
 @views.route('/login', methods=["POST"])
 def login():
     conn = openConnect()
@@ -72,6 +79,9 @@ def login():
     
     return "Username or Password is incorrect!"
 
+# route to change password
+# send username and password
+# send back message
 @views.route('/changePassword', methods=['POST'])
 def changePassword():
     if not verifyLogin():
@@ -95,7 +105,8 @@ def changePassword():
     conn.close()
     
     return 'Password changed'
-   
+  
+  # check if a user is logged in 
 @views.route('/verifyLogin', methods=["GET"])
 def home():
     if verifyLogin():
@@ -103,6 +114,8 @@ def home():
     return "Access Denied"
 
 
+# send id, or empty (for current user)
+# get back all info for a user account
 @views.route('/myAccount', methods=["GET"])
 def myAccount():
     #or session.get('role') != 'applicant'
@@ -127,13 +140,12 @@ def myAccount():
     
     return response
 
+# send employer id, get back company name
 @views.route('/getCompanyName', methods=["GET"])
 def getCompanyName():
     if not verifyLogin():
         return "Access Denied"
     id = session.get('id')
-
-    
     conn = openConnect()
     cursor = conn.cursor()
     select = 'SELECT company_name FROM employer_info WHERE employer_user_id = %s'
@@ -141,10 +153,9 @@ def getCompanyName():
     result = cursor.fetchone()
     cursor.close()
     conn.close()
-    
-
     return result[0]
 
+# send id, get back employer or applicant
 @views.route('/getRole', methods=["GET"])
 def getRole():
     
@@ -165,7 +176,10 @@ def getRole():
     return result[0]
 
 
-
+# get back all jobs
+# send nothing for all active jobs
+# send active=false for all inactive jobs
+#send active=all for both
 @views.route('/allJobs', methods=["GET"])
 def allJobs():
     if not verifyLogin():
@@ -195,6 +209,7 @@ def allJobs():
             response += delimiter.join(map(str, row)) + delimiter2
     return response
 
+# send job id and get back info for the job
 @views.route('/oneJob', methods=["GET"])
 def oneJob():
     if not verifyLogin():
@@ -223,6 +238,7 @@ def oneJob():
         return "Job doesn't exist"
     return response
 
+# send job id and change status of job (active or inactive)
 @views.route('/activeJob', methods=["GET"])
 def activeJob():
     if not verifyLogin():
@@ -239,6 +255,7 @@ def activeJob():
     conn.close()
     return 'Job updated'
 
+# send job id and can change fields in a job posting
 @views.route('/updatePosting', methods=["POST"])
 def updatePosting():
     if not verifyLogin():
@@ -268,7 +285,7 @@ def updatePosting():
     conn.close()
     return 'Job updated'
 
-
+# send user id and can update a users profile
 @views.route('/updateProfile', methods=['POST'])
 def updateProfile():
     if not verifyLogin():
@@ -310,7 +327,8 @@ def updateProfile():
     conn.commit()
     conn.close()
     return f"id:{id}, address:{address}, about_me:{about_me}, name:{name}, phone:{phone}, email{email}, workhistory:{workHistory}, education{education}"
-    
+ 
+ # send employer id and can update an employers info   
 @views.route('/updateEmployer', methods=["POST"])
 def updateEmployer():
     if not verifyLogin():
@@ -334,7 +352,7 @@ def updateEmployer():
     conn.close()
     return "Employer Updated"
 
-
+# send employer id, id of applicant, and a rating to insert rating for a company
 @views.route('/insertRating', methods=["GET"])
 def insertRating():
     if not verifyLogin():
@@ -364,7 +382,7 @@ def insertRating():
     return "Success"
 
 
-
+# add an employer to the database, send id, location (lnglat), company name
 @views.route('/insertEmployerInfo', methods=["POST"])
 def insertEmployerInfo():
     if not verifyLogin():
@@ -389,6 +407,7 @@ def insertEmployerInfo():
     conn.close()
     return "Employer Updated"
 
+# add user info to database, send id, address, about me, name, phone, email, workhistory and education history
 @views.route('/insertUserInfo', methods=["POST"])
 def insertUserInfo():
     if not verifyLogin():
@@ -418,9 +437,7 @@ def insertUserInfo():
     conn.close()
     return "Created"
 
-
-
-
+# insert an applicantion, send job id, applicant id, and a message
 @views.route('/insertApp', methods=["POST"])
 def insertApp():
     if not verifyLogin():
@@ -442,6 +459,7 @@ def insertApp():
     conn.close()
     return "Valid"
 
+# send employer id, get back all reviews for that company
 @views.route('/companyReviews', methods=["GET"])
 def companyReviews():
     if not verifyLogin():
@@ -463,7 +481,8 @@ def companyReviews():
             response += delimiter.join(map(str, row)) + delimiter2
     return response
 
-
+# update an application, done by employer, 
+# send job id,  applicant id, message and status (denied/approved)
 @views.route('/updateApplication', methods=['POST'])
 def updateApp():
     if not verifyLogin():
@@ -489,6 +508,8 @@ def updateApp():
     conn.close()
     return "Success"
 
+# get all applications from a user
+#send user id
 @views.route('/getUserApp', methods=['GET'])
 def getUserApp():
     if not verifyLogin():
@@ -508,6 +529,8 @@ def getUserApp():
             response += delimiter.join(map(str, row)) + delimiter2
     return response
     
+    # get all applications sent to an employer
+    # send employer id
 @views.route('/getEmployerApp', methods=['GET'])
 def getEmployerApp():
     if not verifyLogin():
@@ -527,6 +550,8 @@ def getEmployerApp():
             response += delimiter.join(map(str, row)) + delimiter2
     return response
 
+# get all jobs in a specific categroy
+# send category
 @views.route('/jobCategory', methods=['GET'])
 def jobCategory():
     if not verifyLogin():
@@ -554,6 +579,8 @@ def jobCategory():
             response += delimiter.join(map(str, row)) + delimiter2
     return response
 
+# get all jobs posted by a employer
+# send employer id
 @views.route('/jobByEmployer', methods=['GET'])
 def jobByEmployer():
     if not verifyLogin():
@@ -580,11 +607,13 @@ def jobByEmployer():
         for row in result:
             response += delimiter.join(map(str, row)) + delimiter2
     return response
-    
+
+# verify if a user is logged in    
 def verifyLogin():
     print(session)
     return 'username' in session 
 
+# log the user out
 @views.route('/logout', methods=["GET"])
 def logout():
     if verifyLogin():
@@ -594,7 +623,9 @@ def logout():
     
     else:
         return "No one signed in"
-    
+ 
+ # add a new job
+ # send employer id, title,description, salary and type   
 @views.route('/createJob', methods=['POST'])
 def createJob():
     if not verifyLogin():
@@ -628,6 +659,7 @@ def landing():
     return "Hello World"
 
 
+# connect to the database
 def openConnect():
     print(os.getenv('DBUSER'))
     conn = psycopg2.connect(
