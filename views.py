@@ -452,9 +452,9 @@ def insertApp():
     cursor = conn.cursor()
     insert = '''
     INSERT INTO applications 
-    (jp_id, applicant_id, message)
+    (jp_id, applicant_id, message,staus)
     VALUES 
-    (%s,%s,%s)'''
+    (%s,%s,%s, 'pending')'''
     cursor.execute(insert, (jp_id, applicant_id, message))
     cursor.close()
     conn.commit()
@@ -519,7 +519,7 @@ def getUserApp():
     conn = openConnect()
     cursor = conn.cursor()
     id = request.args.get('id')
-    select = 'SELECT status, message FROM applications WHERE applicant_id = %s'
+    select = 'SELECT jp.job_title,ei.company_name,status FROM job_posting jp JOIN employer_info ei ON jp.employer_id = ei.employer_user_id LEFT JOIN applications a ON jp.id = a.jp_id WHERE applicant_id =  %s'
     cursor.execute(select, (id,))
     result = cursor.fetchall()
     cursor.close()
@@ -540,7 +540,7 @@ def getEmployerApp():
     conn = openConnect()
     cursor = conn.cursor()
     id = request.args.get('id')
-    select = 'SELECT status, message FROM applications WHERE jp_id = %s'
+    select = 'SELECT a.applicant_id , jp_id, status, u.id FROM job_posting jp JOIN applications a ON a.jp_id = jp.id JOIN users u ON a.applicant_id = u.id WHERE employer_id = %s'
     cursor.execute(select, (id,))
     result = cursor.fetchall()
     cursor.close()
