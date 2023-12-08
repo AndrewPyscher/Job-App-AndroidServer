@@ -149,7 +149,7 @@ def getCompanyName():
     conn = openConnect()
     cursor = conn.cursor()
     select = 'SELECT company_name FROM employer_info WHERE employer_user_id = %s'
-    cursor.execute(select, (id,))
+    cursor.execute(select, (int(id),))
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -167,7 +167,7 @@ def getRole():
     conn = openConnect()
     cursor = conn.cursor()
     select = 'SELECT role FROM users WHERE id = %s'
-    cursor.execute(select, (id,))
+    cursor.execute(select, (int(id),))
     result = cursor.fetchone()
     cursor.close()
     conn.close()
