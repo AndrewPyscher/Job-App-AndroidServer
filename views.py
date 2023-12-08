@@ -153,7 +153,7 @@ def getCompanyName():
     result = cursor.fetchone()
     cursor.close()
     conn.close()
-    return str(result)
+    return str(result[0])
 
 # send id, get back employer or applicant
 @views.route('/getRole', methods=["GET"])
@@ -173,7 +173,7 @@ def getRole():
     conn.close()
     
 
-    return str(result)
+    return str(result[0])
 
 
 # get back all jobs
