@@ -540,7 +540,7 @@ def getEmployerApp():
     conn = openConnect()
     cursor = conn.cursor()
     id = request.args.get('id')
-    select = 'SELECT a.applicant_id , jp_id, status, u.id FROM job_posting jp JOIN applications a ON a.jp_id = jp.id JOIN users u ON a.applicant_id = u.id WHERE employer_id = %s'
+    select = 'SELECT a.applicant_id , jp_id, status, u.username FROM job_posting jp JOIN applications a ON a.jp_id = jp.id JOIN users u ON a.applicant_id = u.id WHERE employer_id = %s'
     cursor.execute(select, (id,))
     result = cursor.fetchall()
     cursor.close()
