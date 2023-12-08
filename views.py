@@ -145,11 +145,11 @@ def myAccount():
 def getCompanyName():
     if not verifyLogin():
         return "Access Denied"
-    id = session.get('id')
+    id = request.args.get('id')
     conn = openConnect()
     cursor = conn.cursor()
     select = 'SELECT company_name FROM employer_info WHERE employer_user_id = %s'
-    cursor.execute(select, (int(id),))
+    cursor.execute(select, (id,))
     result = cursor.fetchone()
     cursor.close()
     conn.close()
@@ -161,13 +161,13 @@ def getRole():
     
     if not verifyLogin():
         return "Access Denied"
-    id = session.get('id')
+    id = request.args.get('id')
 
     
     conn = openConnect()
     cursor = conn.cursor()
     select = 'SELECT role FROM users WHERE id = %s'
-    cursor.execute(select, (int(id),))
+    cursor.execute(select, (id,))
     result = cursor.fetchone()
     cursor.close()
     conn.close()
