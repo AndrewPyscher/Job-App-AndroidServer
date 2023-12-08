@@ -151,6 +151,8 @@ def getCompanyName():
     select = 'SELECT company_name FROM employer_info WHERE employer_user_id = %s'
     cursor.execute(select, (id,))
     result = cursor.fetchone()
+    if result is None:
+        return 'None'
     cursor.close()
     conn.close()
     return str(result[0])
