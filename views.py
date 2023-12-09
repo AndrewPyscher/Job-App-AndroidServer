@@ -452,7 +452,7 @@ def insertApp():
     cursor = conn.cursor()
     insert = '''
     INSERT INTO applications 
-    (jp_id, applicant_id, message,staus)
+    (jp_id, applicant_id, message,status)
     VALUES 
     (%s,%s,%s, 'pending')'''
     cursor.execute(insert, (jp_id, applicant_id, message))
